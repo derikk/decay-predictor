@@ -6,10 +6,7 @@ element_symbols = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "
 element_names = ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium", "Scandium", "Titanium", "Vanadium", "Chromium", "Manganese", "Iron", "Cobalt", "Nickel", "Copper", "Zinc", "Gallium", "Germanium", "Arsenic", "Selenium", "Bromine", "Krypton", "Rubidium", "Strontium", "Yttrium", "Zirconium", "Niobium", "Molybdenum", "Technetium", "Ruthenium", "Rhodium", "Palladium", "Silver", "Cadmium", "Indium", "Tin", "Antimony", "Tellurium", "Iodine", "Xenon", "Caesium", "Barium", "Lanthanum", "Cerium", "Praseodymium", "Neodymium", "Promethium", "Samarium", "Europium", "Gadolinium", "Terbium", "Dysprosium", "Holmium", "Erbium", "Thulium", "Ytterbium", "Lutetium", "Hafnium", "Tantalum", "Tungsten", "Rhenium", "Osmium", "Iridium", "Platinum", "Gold", "Mercury", "Thallium", "Lead", "Bismuth", "Polonium", "Astatine", "Radon", "Francium", "Radium", "Actinium", "Thorium", "Protactinium", "Uranium", "Neptunium", "Plutonium", "Americium", "Curium", "Berkelium", "Californium", "Einsteinium", "Fermium", "Mendelevium", "Nobelium", "Lawrencium", "Rutherfordium", "Dubnium", "Seaborgium", "Bohrium", "Hassium", "Meitnerium", "Darmstadtium", "Roentgenium", "Copernicium", "Nihonium", "Flerovium", "Moscovium", "Livermorium", "Tennessine", "Oganesson"]
 
 # Masses in MeV/c²
-p_mass = 938.272081
-n_mass = 939.565413
-e_mass = 0.510999
-α_mass = 3727.379378
+const mass = Dict(:p => 938.272081, :n => 939.565413, :e => 0.510999, :α => 3727.379378)
 
 # Compiled sets of coefficients
 averaged_coefficients = (15.78, 18., 0.712, 23.5, 11.8, 0.5)
@@ -17,11 +14,11 @@ tinker_coefficients = (15.78, 18.03, 0.713, 23.5, 11.8, 0.5)
 wiki_ls1_coefficients = (15.8, 18.3, 0.714, 23.2, 12, 0.5)
 wiki_ls2_coefficients = (15.76, 17.81, 0.711, 23.702, 34, 0.75)
 wiki_rohlf_coefficients = (15.75, 17.8, 0.711, 23.7, 11.18, 0.5)
-tipler_coefficients = (15.76, 17.23, 0.75, 23.2, 12., 0.5) # aA was written as 93.2 but that's way off
+tipler_coefficients = (15.76, 17.23, 0.75, 23.2, 12., 0.5)  # aA was written as 93.2 but that's way off
 vahid_coefficients = (15.519, 17.476, 0.674, 24.576, 12, 0.5)
 hyperphys_coefficients = (15.75, 17.8, 0.711, 23.7, 11.18, 0.5)
 
-(aV, aS, aC, aA, aP, kP) = averaged_coefficients
+aV, aS, aC, aA, aP, kP = averaged_coefficients
 
 
 
@@ -30,7 +27,7 @@ hyperphys_coefficients = (15.75, 17.8, 0.711, 23.7, 11.18, 0.5)
 # I present to you… the semi-empirical mass formula! Courtesy of Carl Friedrich von Weizsäcker.
 # Check it out: https://en.wikipedia.org/wiki/Semi-empirical_mass_formula
 binding_E(A, Z) = aV*A - aS*A^(2/3) - aC*Z^2*A^(-1/3) - aA*(A-2Z)^2/A + δ(A, Z) + magic(A, Z)
-binding_per_nucleon(A, Z) = binding_E/A
+binding_per_nucleon(A, Z) = binding_E(A, Z)/A
 
 # Bonus points if Z and/or N are even.
 δ(A, Z) = -((A+1) % 2) * (Z%2 * 2 - 1) * aP/A^kP
@@ -42,9 +39,9 @@ function magic(A, Z)
   aM*((Z in magic_nums) + (A-Z in magic_nums))  # Divide by √A?
 end
 
-Qval_α_decay(A, Z) = (2p_mass + 2n_mass - binding_E(A, Z)) - (α_mass - binding_E(A-4, Z-2))
-Qval_β⁻_decay(A, Z) = (n_mass - binding_E(A, Z)) - (p_mass + e_mass - binding_E(A, Z+1))
-Qval_β⁺_decay(A, Z) = (p_mass - binding_E(A, Z)) - (n_mass + e_mass - binding_E(A, Z-1))
+Qval_α_decay(A, Z) = (2mass[:p] + 2mass[:n] - binding_E(A, Z)) - (mass[:α] - binding_E(A-4, Z-2))
+Qval_β⁻_decay(A, Z) = (mass[:n] - binding_E(A, Z)) - (mass[:p] + mass[:e] - binding_E(A, Z+1))
+Qval_β⁺_decay(A, Z) = (mass[:p] - binding_E(A, Z)) - (mass[:n] + mass[:e] - binding_E(A, Z-1))
 
 println(binding_E(50, 26))  # Actual:  417.70
 println(binding_E(235, 92)) # Actual: 1783.87
@@ -59,7 +56,7 @@ function decay_modes(A, Z)
   α_decays = Qval_α_decay(A, Z) > 0
   β⁻_decays = Qval_β⁻_decay(A, Z) > 0
   β⁺_decays = Qval_β⁺_decay(A, Z) > 0
-  e_captures = Qval_β⁺_decay(A, Z) > -2e_mass # Instead of emitting positron, capture electron
+  e_captures = Qval_β⁺_decay(A, Z) > -2mass[:e] # Instead of emitting positron, capture electron
 
   print(element_names[Z], "-", A)
   if α_decays || β⁻_decays || e_captures
